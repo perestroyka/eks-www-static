@@ -1,0 +1,116 @@
+Description: "EKS Static Website MVP - test exercise for MarCom"
+
+Parameters:
+
+  InstanceType:
+    Type: String
+    Default: t3.small
+    Description: Instance type
+
+  SubNetA:
+    Type: String
+    Default: "subnet-aa43adcd"
+  SubNetB:
+    Type: String
+    Default: "subnet-f90775a1"
+  VPC:
+    Type: String
+    Default: "vpc-ab4a86cc"
+
+  ClusterName:
+    Type: String
+    Default: static-web-mvp-cluster
+
+
+  VolumeSize:
+    Type: Number
+    Default: 10
+    Description: Size of the EBS volume in GB.
+
+  GitRepoTest:
+    Type: String
+    Default: "pie-github-test"
+    Description: CICD Repository Name
+
+  EKSmin:
+    Type: Number
+    Default: 2
+    Description: Min EKS nodes
+
+  GitRepoMain:
+    Type: String
+    Default: ""
+
+
+
+Resources:
+  EksIamRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"     
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service: 
+              - eks.amazonaws.com
+              - ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/" 
+      RoleName: "static-web-mvp-iam-role"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+        - "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+        - "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+        - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+  
+  EksSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription:
+        Fn::Sub: "${AWS::StackName} SG"   
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: "0.0.0.0/0"
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: "0.0.0.0/0"  
+
+  EksCluster:
+    Type: AWS::EKS::Cluster
+    Properties: 
+      Name: !Ref ClusterName
+      ResourcesVpcConfig: 
+        SecurityGroupIds:
+          - Ref: EksSG
+        SubnetIds:
+          - Ref: SubNetA
+          - Ref: SubNetB
+      RoleArn: !GetAtt EksIamRole.Arn
+  
+  NodeGroup1:
+    Type: AWS::EKS::Nodegroup
+    Properties: 
+      AmiType: AL2_x86_64
+      CapacityType: ON_DEMAND
+      ClusterName: !Ref ClusterName
+      DiskSize: 5
+      InstanceTypes: 
+        - Ref: InstanceType
+      NodegroupName: NodeGroup1
+      NodeRole: !GetAtt EksIamRole.Arn
+      ScalingConfig: 
+        DesiredSize: 2
+        MaxSize: 2
+        MinSize: 2
+      Subnets: 
+        - Ref: SubNetA
+        - Ref: SubNetB
+    DependsOn: EksCluster
+
+    

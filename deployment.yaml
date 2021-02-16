@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: eks-lb
+spec:
+  selector:
+    app: static-web-eks
+  ports:
+    - port: 80
+      targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: static-web-eks
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: static-web-eks
+  template:
+    metadata:
+      labels:
+        app: static-web-eks
+    spec:
+      containers:
+        - name: static-web-eks
+          image: 450964039129.dkr.ecr.us-west-2.amazonaws.com/static-web-eks:latest
+          ports:
+            - containerPort: 80

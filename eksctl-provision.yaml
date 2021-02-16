@@ -1,0 +1,21 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: static-web-eks
+  region: us-west-2
+  version: "1.18"
+vpc:
+  subnets:
+    private:
+      us-west-1a: { id: subnet-f90775a1 }
+      us-west-1b: { id: subnet-aa43adcd }
+
+nodeGroups:
+  - name: nodegroup1
+    instanceType: t3.small
+    desiredCapacity: 2
+    privateNetworking: true
+    iam:
+      withAddonPolicies:
+        imageBuilder: true
