@@ -26,7 +26,8 @@ phases:
       - export AWS_SESSION_TOKEN="$(echo ${CREDENTIALS} | jq -r '.Credentials.SessionToken')"
       - export AWS_EXPIRATION=$(echo ${CREDENTIALS} | jq -r '.Credentials.Expiration')
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
-      - kubectl get po --kubeconfig=/etc/kubernetes/admin.conf
+      - kubectl config get-contexts
+      - kubectl config use-context arn:aws:eks:us-west-2:450964039129:cluster/static-web-eks
       - kubectl apply -f deployment.yaml
       - printf '[{"name":"eks-www-static-mvp","imageUri":"%s"}]' $REPOSITORY_URI:$TAG > build.json
 artifacts:
