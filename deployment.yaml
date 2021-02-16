@@ -30,6 +30,6 @@ spec:
     spec:
       containers:
         - name: static-web-eks
-          image: 450964039129.dkr.ecr.us-west-2.amazonaws.com/static-web-eks:latest
+          image: CONTAINER_IMAGE
           ports:
             - containerPort: 80
